@@ -1,0 +1,298 @@
+/* Selection Overlay Styles */
+.chrome-snapshot-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 2147483647; /* Maximum z-index to ensure overlay is on top */
+    cursor: crosshair;
+    user-select: none;
+    pointer-events: all;
+}
+
+.chrome-snapshot-overlay.hidden {
+    display: none;
+}
+
+/* Selection rectangle */
+.chrome-snapshot-selection {
+    position: absolute;
+    border: 2px solid #007bff;
+    background: rgba(0, 123, 255, 0.1);
+    pointer-events: none;
+}
+
+/* Selection guides/rulers */
+.chrome-snapshot-guide {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+}
+
+.chrome-snapshot-guide.vertical {
+    width: 1px;
+    height: 100vh;
+    top: 0;
+}
+
+.chrome-snapshot-guide.horizontal {
+    height: 1px;
+    width: 100vw;
+    left: 0;
+}
+
+/* Coordinates display */
+.chrome-snapshot-coords {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* Instructions text */
+.chrome-snapshot-instructions {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    text-align: center;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Screenshot UI Overlay */
+.chrome-snapshot-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.chrome-snapshot-ui.hidden {
+    display: none;
+}
+
+/* Screenshot preview container */
+.chrome-snapshot-preview {
+    max-width: 90vw;
+    max-height: 70vh;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+}
+
+.chrome-snapshot-preview img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Canvas for editing */
+.chrome-snapshot-canvas {
+    border: none;
+    display: block;
+    background: white;
+}
+
+/* Toolbar */
+.chrome-snapshot-toolbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    z-index: 2147483648;
+}
+
+.chrome-snapshot-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.chrome-snapshot-btn:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.chrome-snapshot-btn.secondary {
+    background: #6c757d;
+}
+
+.chrome-snapshot-btn.secondary:hover {
+    background: #545b62;
+}
+
+.chrome-snapshot-btn.danger {
+    background: #dc3545;
+}
+
+.chrome-snapshot-btn.danger:hover {
+    background: #c82333;
+}
+
+/* Color picker */
+.chrome-snapshot-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chrome-snapshot-color-picker label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.chrome-snapshot-color-picker input[type="color"] {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Highlight mode indicator */
+.chrome-snapshot-highlight-mode {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 193, 7, 0.9);
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Close button */
+.chrome-snapshot-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.chrome-snapshot-close:hover {
+    background: rgba(220, 53, 69, 1);
+    transform: scale(1.1);
+}
+
+/* Loading indicator */
+.chrome-snapshot-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.chrome-snapshot-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: chrome-snapshot-spin 1s linear infinite;
+}
+
+@keyframes chrome-snapshot-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chrome-snapshot-preview {
+        max-width: 95vw;
+        max-height: 50vh;
+    }
+
+    .chrome-snapshot-toolbar {
+        bottom: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 95vw;
+    }
+
+    .chrome-snapshot-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .chrome-snapshot-instructions {
+        top: 10px;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+}
+
+/* Animation for smooth appearance */
+.chrome-snapshot-overlay,
+.chrome-snapshot-ui {
+    animation: chrome-snapshot-fade-in 0.2s ease-out;
+}
+
+@keyframes chrome-snapshot-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

@@ -4,14 +4,14 @@ A Chrome extension that enables users to take screenshots of selected screen are
 
 ## Features
 
-- 🖱️ **Area Selection**: Click and drag to select any area of the webpage
-- 🎨 **Highlighting**: Add colored highlights to your screenshots
-- 💾 **Save as PNG**: Download screenshots directly to your computer
-- 📋 **Copy to Clipboard**: Copy screenshots for easy pasting elsewhere
-- ⌨️ **Keyboard Shortcuts**: Quick access with `Ctrl+Shift+S` (or `Cmd+Shift+S` on Mac)
-- 🖱️ **Context Menu**: Right-click anywhere to take a screenshot
-- 🎯 **Visual Guides**: Crosshairs and coordinates for precise selection
-- 🚀 **Fullscreen UI**: Clean, distraction-free interface
+- **Area Selection**: Click and drag to select any area of the webpage
+- **Highlighting**: Add colored highlights to your screenshots
+- **Save as PNG**: Download screenshots directly to your computer
+- **Copy to Clipboard**: Copy screenshots for easy pasting elsewhere
+- **Keyboard Shortcuts**: Quick access with `Ctrl+Shift+S` (or `Cmd+Shift+S` on Mac)
+- **Context Menu**: Right-click anywhere to take a screenshot
+- **Visual Guides**: Crosshairs and coordinates for precise selection
+- **Fullscreen UI**: Clean, distraction-free interface
 
 ## Installation
 
@@ -34,9 +34,6 @@ A Chrome extension that enables users to take screenshots of selected screen are
    - Click "Load unpacked"
    - Select the `chrome-snapshot` folder
    - The extension should now appear in your extensions list
-
-### From Chrome Web Store
-*Coming soon - extension will be published to the Chrome Web Store*
 
 ## Usage
 
@@ -99,42 +96,6 @@ After capturing, you'll see the screenshot editor with these options:
 - 🔒 **Minimal permissions**: Only requests necessary browser permissions
 - 🔒 **No tracking**: No analytics or user tracking
 
-## Development
-
-### Project Structure
-
-```
-chrome-snapshot/
-├── manifest.json              # Extension configuration
-├── background.js              # Service worker for context menu/shortcuts
-├── content.js                 # Main UI and selection logic
-├── popup/
-│   ├── popup.html            # Extension popup interface
-│   └── popup.js              # Popup logic
-├── styles/
-│   └── selection-overlay.css # UI styling
-└── assets/
-    ├── icon.svg              # Source icon file
-    ├── icon16.png           # 16x16 icon
-    ├── icon48.png           # 48x48 icon
-    └── icon128.png          # 128x128 icon
-```
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-### Building for Production
-
-1. Ensure all icon files are generated
-2. Test the extension in Chrome
-3. Zip the entire project directory (excluding `.git/`)
-4. Upload to Chrome Web Store
-
 ## Troubleshooting
 
 ### Extension Won't Load
@@ -155,15 +116,3 @@ chrome-snapshot/
 ## License
 
 MIT License - see LICENSE file for details.
-
-## Support
-
-If you encounter any issues:
-1. Check the troubleshooting section above
-2. Look for existing issues on GitHub
-3. Create a new issue with detailed information about the problem
-
----
-
-Made with ❤️ for better screenshot workflows
-chrome extension for taking quick snapshots w/ optional annotation

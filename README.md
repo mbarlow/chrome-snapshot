@@ -22,13 +22,8 @@ A Chrome extension that enables users to take screenshots of selected screen are
    git clone https://github.com/mbarlow/chrome-snapshot.git
    cd chrome-snapshot
    ```
-
-2. **Generate icon files** (required):
-   - Navigate to `assets/` directory
-   - Follow instructions in `assets/README.md` to generate the required PNG icons from the SVG file
-   - Ensure `icon16.png`, `icon48.png`, and `icon128.png` are present
-
-3. **Load the extension in Chrome**:
+   
+2. **Load the extension in Chrome**:
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode" in the top right
    - Click "Load unpacked"
@@ -99,7 +94,6 @@ After capturing, you'll see the screenshot editor with these options:
 ## Troubleshooting
 
 ### Extension Won't Load
-- Ensure all required icon files are present in `assets/`
 - Check that you're using Chrome 88+ or a compatible browser
 - Try disabling and re-enabling the extension
 

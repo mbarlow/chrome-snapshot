@@ -15,10 +15,10 @@ A Chrome extension for taking screenshots of selected screen areas with highligh
 
 ## Install
 
-1. Clone this repo
+1. Download and unzip the latest release from the [releases page](https://github.com/mbarlow/chrome-snapshot/releases), or clone this repo
 2. Open `chrome://extensions`
 3. Enable Developer Mode
-4. Click "Load unpacked" and select this directory
+4. Click "Load unpacked" and select the unzipped directory
 
 ## Usage
 

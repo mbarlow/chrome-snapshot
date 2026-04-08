@@ -2,6 +2,9 @@
 
 A Chrome extension for taking screenshots of selected screen areas with highlighting.
 
+<img width="1847" height="886" alt="image" src="https://github.com/user-attachments/assets/6e0593e2-dc06-4df3-91c6-78ec52283830" />
+
+
 ## Features
 
 - Click and drag to select any area of a webpage

@@ -201,9 +201,13 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
     }
 
     async captureScreenshot() {
-      this.showLoading();
+      // Hide the overlay so it doesn't appear in the captured image
+      this.overlay.style.display = "none";
 
       try {
+        // Wait a frame for the browser to repaint without the overlay
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
         const response = await chrome.runtime.sendMessage({
           type: "CAPTURE_SCREENSHOT",
         });
@@ -262,15 +266,6 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
         img.onerror = () => reject(new Error("Failed to load captured image"));
         img.src = dataUrl;
       });
-    }
-
-    showLoading() {
-      this.overlay.innerHTML = `
-      <div class="chrome-snapshot-loading">
-        <div class="chrome-snapshot-spinner"></div>
-        <div>Capturing screenshot...</div>
-      </div>
-    `;
     }
 
     showScreenshotUI(imageData) {

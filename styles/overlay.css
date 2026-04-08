@@ -1,0 +1,262 @@
+/* ── Selection Overlay ── */
+
+.chrome-snapshot-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 2147483647;
+    cursor: crosshair;
+    user-select: none;
+    pointer-events: all;
+    animation: chrome-snapshot-fade-in 0.15s ease-out;
+}
+
+.chrome-snapshot-selection {
+    position: absolute;
+    border: 2px solid #3B82F6;
+    background: rgba(59, 130, 246, 0.08);
+    pointer-events: none;
+}
+
+.chrome-snapshot-guide {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.chrome-snapshot-guide.vertical {
+    width: 1px;
+    height: 100vh;
+    top: 0;
+}
+
+.chrome-snapshot-guide.horizontal {
+    height: 1px;
+    width: 100vw;
+    left: 0;
+}
+
+.chrome-snapshot-coords {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.75);
+    color: #E5E5E5;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.chrome-snapshot-instructions {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: #E5E5E5;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    pointer-events: none;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Screenshot Editor ── */
+
+.chrome-snapshot-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    animation: chrome-snapshot-fade-in 0.15s ease-out;
+}
+
+.chrome-snapshot-preview {
+    position: relative;
+    max-width: 90vw;
+    max-height: calc(100vh - 100px);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.chrome-snapshot-canvas {
+    display: block;
+    border: none;
+    background: white;
+}
+
+/* Highlight drag preview */
+.chrome-snapshot-highlight-preview {
+    position: absolute;
+    border: 2px dashed rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 2px;
+}
+
+/* ── Toolbar ── */
+
+.chrome-snapshot-toolbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 2147483648;
+}
+
+.chrome-snapshot-btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-family: inherit;
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+}
+
+.chrome-snapshot-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.chrome-snapshot-btn.active {
+    background: #3B82F6;
+    color: #fff;
+}
+
+.chrome-snapshot-btn.active:hover {
+    background: #2563EB;
+}
+
+.chrome-snapshot-btn.primary {
+    background: #3B82F6;
+    color: #fff;
+}
+
+.chrome-snapshot-btn.primary:hover {
+    background: #2563EB;
+}
+
+.chrome-snapshot-btn.close-btn {
+    background: transparent;
+    padding: 7px 10px;
+    font-size: 18px;
+    line-height: 1;
+    color: #888;
+}
+
+.chrome-snapshot-btn.close-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Swatches ── */
+
+.chrome-snapshot-swatches {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 0 2px;
+}
+
+.chrome-snapshot-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+    padding: 0;
+    outline: none;
+    background: none;
+}
+
+.chrome-snapshot-swatch:hover {
+    transform: scale(1.2);
+}
+
+.chrome-snapshot-swatch.selected {
+    border-color: #fff;
+}
+
+/* ── Separator ── */
+
+.chrome-snapshot-separator {
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.12);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* ── Copy feedback toast ── */
+
+.chrome-snapshot-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #E5E5E5;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 2147483649;
+    backdrop-filter: blur(12px);
+    pointer-events: none;
+}
+
+/* ── Animation ── */
+
+@keyframes chrome-snapshot-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+    .chrome-snapshot-preview {
+        max-width: 95vw;
+        max-height: calc(100vh - 80px);
+    }
+
+    .chrome-snapshot-toolbar {
+        bottom: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 95vw;
+    }
+}

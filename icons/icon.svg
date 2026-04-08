@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+  <!-- Crosshair lines -->
+  <line x1="64" y1="34" x2="64" y2="54" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="64" y1="74" x2="64" y2="94" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="34" y1="64" x2="54" y2="64" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="74" y1="64" x2="94" y2="64" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="64" cy="64" r="3" fill="white"/>
+  <!-- Corner brackets -->
+  <!-- Top-left -->
+  <path d="M32 48 L32 32 L48 32" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Top-right -->
+  <path d="M80 32 L96 32 L96 48" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bottom-left -->
+  <path d="M32 80 L32 96 L48 96" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bottom-right -->
+  <path d="M80 96 L96 96 L96 80" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

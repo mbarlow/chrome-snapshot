@@ -77,7 +77,7 @@ async function initiateScreenshot(tab) {
 
     await chrome.scripting.insertCSS({
       target: { tabId: tab.id },
-      files: ["styles/selection-overlay.css"],
+      files: ["styles/overlay.css"],
     });
 
     // Wait a bit for injection to complete, then send message

@@ -9,7 +9,15 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       this.isSelecting = false;
       this.isHighlighting = false;
       this.selection = null;
-      this.highlightColor = "#ffff00";
+      this.highlightColors = [
+        '#FEF08A', // yellow
+        '#FBCFE8', // pink
+        '#BBF7D0', // green
+        '#BFDBFE', // blue
+        '#FED7AA', // orange
+        '#DDD6FE', // purple
+      ];
+      this.highlightColor = this.highlightColors[0];
       this.highlights = [];
 
       // DOM elements
@@ -201,9 +209,13 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
     }
 
     async captureScreenshot() {
-      this.showLoading();
+      // Hide the overlay so it doesn't appear in the captured image
+      this.overlay.style.display = "none";
 
       try {
+        // Wait a frame for the browser to repaint without the overlay
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
         const response = await chrome.runtime.sendMessage({
           type: "CAPTURE_SCREENSHOT",
         });
@@ -264,15 +276,6 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       });
     }
 
-    showLoading() {
-      this.overlay.innerHTML = `
-      <div class="chrome-snapshot-loading">
-        <div class="chrome-snapshot-spinner"></div>
-        <div>Capturing screenshot...</div>
-      </div>
-    `;
-    }
-
     showScreenshotUI(imageData) {
       // Remove selection overlay
       if (this.overlay) {
@@ -301,7 +304,7 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
 
         // Set canvas display size
         const maxWidth = window.innerWidth * 0.9;
-        const maxHeight = window.innerHeight * 0.7;
+        const maxHeight = window.innerHeight - 100;
         const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
 
         this.canvas.style.width = img.width * scale + "px";
@@ -309,20 +312,19 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       };
       img.src = imageData;
 
+      // Create highlight drag preview element
+      this.highlightPreview = document.createElement("div");
+      this.highlightPreview.className = "chrome-snapshot-highlight-preview";
+      this.highlightPreview.style.display = "none";
+
       // Create toolbar
       const toolbar = this.createToolbar();
 
-      // Create close button
-      const closeBtn = document.createElement("button");
-      closeBtn.className = "chrome-snapshot-close";
-      closeBtn.innerHTML = "×";
-      closeBtn.onclick = () => this.cleanup();
-
       // Append elements
       preview.appendChild(this.canvas);
+      preview.appendChild(this.highlightPreview);
       this.screenshotUI.appendChild(preview);
       this.screenshotUI.appendChild(toolbar);
-      this.screenshotUI.appendChild(closeBtn);
 
       document.body.appendChild(this.screenshotUI);
 
@@ -334,117 +336,141 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       const toolbar = document.createElement("div");
       toolbar.className = "chrome-snapshot-toolbar";
 
-      // Highlight button
-      const highlightBtn = document.createElement("button");
-      highlightBtn.className = "chrome-snapshot-btn";
-      highlightBtn.textContent = "Add Highlight";
-      highlightBtn.onclick = () => this.toggleHighlightMode();
+      // Highlight toggle
+      this.highlightBtn = document.createElement("button");
+      this.highlightBtn.className = "chrome-snapshot-btn";
+      this.highlightBtn.textContent = "Highlight";
+      this.highlightBtn.onclick = () => this.toggleHighlightMode();
 
-      // Color picker
-      const colorPicker = document.createElement("div");
-      colorPicker.className = "chrome-snapshot-color-picker";
-      colorPicker.innerHTML = `
-      <label>Color:</label>
-      <input type="color" value="${this.highlightColor}" />
-    `;
-      const colorInput = colorPicker.querySelector("input");
-      colorInput.onchange = (e) => {
-        this.highlightColor = e.target.value;
-      };
+      // Swatches
+      this.swatchContainer = document.createElement("div");
+      this.swatchContainer.className = "chrome-snapshot-swatches";
+      this.swatchContainer.style.display = "none";
+      this.highlightColors.forEach((color, i) => {
+        const swatch = document.createElement("button");
+        swatch.className = "chrome-snapshot-swatch" + (i === 0 ? " selected" : "");
+        swatch.style.backgroundColor = color;
+        swatch.onclick = () => {
+          this.highlightColor = color;
+          this.swatchContainer.querySelectorAll(".chrome-snapshot-swatch").forEach(s => s.classList.remove("selected"));
+          swatch.classList.add("selected");
+        };
+        this.swatchContainer.appendChild(swatch);
+      });
 
-      // Save button
+      // Separators
+      const sep1 = document.createElement("div");
+      sep1.className = "chrome-snapshot-separator";
+      const sep2 = document.createElement("div");
+      sep2.className = "chrome-snapshot-separator";
+
+      // Save
       const saveBtn = document.createElement("button");
-      saveBtn.className = "chrome-snapshot-btn";
+      saveBtn.className = "chrome-snapshot-btn primary";
       saveBtn.textContent = "Save PNG";
       saveBtn.onclick = () => this.saveImage();
 
-      // Copy button
+      // Copy
       const copyBtn = document.createElement("button");
-      copyBtn.className = "chrome-snapshot-btn secondary";
-      copyBtn.textContent = "Copy to Clipboard";
+      copyBtn.className = "chrome-snapshot-btn";
+      copyBtn.textContent = "Copy";
       copyBtn.onclick = () => this.copyToClipboard();
 
-      // Cancel button
-      const cancelBtn = document.createElement("button");
-      cancelBtn.className = "chrome-snapshot-btn danger";
-      cancelBtn.textContent = "Cancel";
-      cancelBtn.onclick = () => this.cleanup();
+      // Close
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "chrome-snapshot-btn close-btn";
+      closeBtn.innerHTML = "\u00d7";
+      closeBtn.onclick = () => this.cleanup();
 
-      toolbar.appendChild(highlightBtn);
-      toolbar.appendChild(colorPicker);
+      toolbar.appendChild(this.highlightBtn);
+      toolbar.appendChild(this.swatchContainer);
+      toolbar.appendChild(sep1);
       toolbar.appendChild(saveBtn);
       toolbar.appendChild(copyBtn);
-      toolbar.appendChild(cancelBtn);
+      toolbar.appendChild(sep2);
+      toolbar.appendChild(closeBtn);
 
       return toolbar;
     }
 
     attachCanvasListeners() {
       let isDrawing = false;
-      let startX, startY;
+      let displayStartX, displayStartY;
 
       this.canvas.addEventListener("mousedown", (e) => {
         if (!this.isHighlighting) return;
-
         isDrawing = true;
-        const rect = this.canvas.getBoundingClientRect();
-        const scaleX = this.canvas.width / rect.width;
-        const scaleY = this.canvas.height / rect.height;
 
-        startX = (e.clientX - rect.left) * scaleX;
-        startY = (e.clientY - rect.top) * scaleY;
+        const rect = this.canvas.getBoundingClientRect();
+        displayStartX = e.clientX - rect.left;
+        displayStartY = e.clientY - rect.top;
+
+        this.highlightPreview.style.display = "block";
+        this.highlightPreview.style.left = displayStartX + "px";
+        this.highlightPreview.style.top = displayStartY + "px";
+        this.highlightPreview.style.width = "0";
+        this.highlightPreview.style.height = "0";
+        this.highlightPreview.style.backgroundColor = this.highlightColor + "40";
+        e.preventDefault();
+      });
+
+      this.canvas.addEventListener("mousemove", (e) => {
+        if (!isDrawing) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        const left = Math.min(displayStartX, currentX);
+        const top = Math.min(displayStartY, currentY);
+        const width = Math.abs(currentX - displayStartX);
+        const height = Math.abs(currentY - displayStartY);
+
+        this.highlightPreview.style.left = left + "px";
+        this.highlightPreview.style.top = top + "px";
+        this.highlightPreview.style.width = width + "px";
+        this.highlightPreview.style.height = height + "px";
       });
 
       this.canvas.addEventListener("mouseup", (e) => {
         if (!this.isHighlighting || !isDrawing) return;
-
         isDrawing = false;
+        this.highlightPreview.style.display = "none";
+
         const rect = this.canvas.getBoundingClientRect();
         const scaleX = this.canvas.width / rect.width;
         const scaleY = this.canvas.height / rect.height;
 
-        const endX = (e.clientX - rect.left) * scaleX;
-        const endY = (e.clientY - rect.top) * scaleY;
+        const displayEndX = e.clientX - rect.left;
+        const displayEndY = e.clientY - rect.top;
 
-        this.addHighlight(startX, startY, endX - startX, endY - startY);
+        const left = Math.min(displayStartX, displayEndX);
+        const top = Math.min(displayStartY, displayEndY);
+        const width = Math.abs(displayEndX - displayStartX);
+        const height = Math.abs(displayEndY - displayStartY);
+
+        if (width > 2 && height > 2) {
+          this.addHighlight(left * scaleX, top * scaleY, width * scaleX, height * scaleY);
+        }
       });
     }
 
     toggleHighlightMode() {
       this.isHighlighting = !this.isHighlighting;
-
       if (this.isHighlighting) {
         this.canvas.style.cursor = "crosshair";
-        this.showHighlightIndicator();
+        this.highlightBtn.classList.add("active");
+        this.swatchContainer.style.display = "flex";
       } else {
         this.canvas.style.cursor = "default";
-        this.hideHighlightIndicator();
-      }
-    }
-
-    showHighlightIndicator() {
-      if (this.screenshotUI.querySelector(".chrome-snapshot-highlight-mode"))
-        return;
-
-      const indicator = document.createElement("div");
-      indicator.className = "chrome-snapshot-highlight-mode";
-      indicator.textContent = "Highlight Mode - Click and drag to highlight";
-      this.screenshotUI.appendChild(indicator);
-    }
-
-    hideHighlightIndicator() {
-      const indicator = this.screenshotUI.querySelector(
-        ".chrome-snapshot-highlight-mode",
-      );
-      if (indicator) {
-        indicator.remove();
+        this.highlightBtn.classList.remove("active");
+        this.swatchContainer.style.display = "none";
       }
     }
 
     addHighlight(x, y, width, height) {
-      this.ctx.fillStyle = this.highlightColor + "80"; // Add transparency
+      this.ctx.fillStyle = this.highlightColor + "80";
       this.ctx.fillRect(x, y, width, height);
-
       this.highlights.push({ x, y, width, height, color: this.highlightColor });
     }
 
@@ -479,23 +505,12 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
           new ClipboardItem({ "image/png": blob }),
         ]);
 
-        // Show feedback
-        const feedback = document.createElement("div");
-        feedback.style.position = "fixed";
-        feedback.style.top = "50%";
-        feedback.style.left = "50%";
-        feedback.style.transform = "translate(-50%, -50%)";
-        feedback.style.background = "rgba(0, 0, 0, 0.8)";
-        feedback.style.color = "white";
-        feedback.style.padding = "12px 20px";
-        feedback.style.borderRadius = "8px";
-        feedback.style.zIndex = "2147483648";
-        feedback.textContent = "Copied to clipboard!";
-
-        document.body.appendChild(feedback);
-        setTimeout(() => {
-          document.body.removeChild(feedback);
-        }, 2000);
+        // Show feedback toast
+        const toast = document.createElement("div");
+        toast.className = "chrome-snapshot-toast";
+        toast.textContent = "Copied to clipboard";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1500);
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
       }

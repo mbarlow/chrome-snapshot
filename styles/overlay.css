@@ -238,6 +238,11 @@
     pointer-events: none;
 }
 
+.chrome-snapshot-toast.error {
+    background: rgba(120, 30, 30, 0.85);
+    color: #fecaca;
+}
+
 /* ── Animation ── */
 
 @keyframes chrome-snapshot-fade-in {

@@ -1,6 +1,13 @@
 // Background service worker for Chrome Snapshot extension
 
+import { addClip, updateClip } from "./db.js";
+
 let isScreenshotInProgress = false;
+
+// Tell any open side panel that the clip store changed so it can re-render.
+function broadcastClipsUpdated() {
+  chrome.runtime.sendMessage({ type: "CLIPS_UPDATED" }).catch(() => {});
+}
 
 // Initialize the extension
 chrome.runtime.onInstalled.addListener(() => {
@@ -56,6 +63,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case "SCREENSHOT_CANCELLED":
       isScreenshotInProgress = false;
       break;
+
+    case "SAVE_CLIP":
+      // Content script captured a region — persist it to the shared store.
+      addClip({
+        dataUrl: message.dataUrl,
+        source: "capture",
+        host: message.host || "",
+        w: message.w,
+        h: message.h,
+      })
+        .then((id) => {
+          sendResponse({ id });
+          broadcastClipsUpdated();
+        })
+        .catch((error) => {
+          console.error("Failed to save clip:", error);
+          sendResponse({ error: error.message });
+        });
+      return true;
+
+    case "UPDATE_CLIP":
+      // Annotated copy overwrote the clipboard — follow it in history.
+      updateClip(message.id, message.dataUrl)
+        .then((ok) => {
+          sendResponse({ ok });
+          broadcastClipsUpdated();
+        })
+        .catch((error) => {
+          console.error("Failed to update clip:", error);
+          sendResponse({ error: error.message });
+        });
+      return true;
   }
 });
 

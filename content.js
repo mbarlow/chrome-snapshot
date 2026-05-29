@@ -20,6 +20,10 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       this.highlightColor = this.highlightColors[0];
       this.highlights = [];
 
+      // History entry id for the current capture (set after auto-save), so an
+      // annotated Copy can overwrite the same clip rather than add a new one.
+      this.currentClipId = null;
+
       // DOM elements
       this.overlay = null;
       this.selectionRect = null;
@@ -309,6 +313,10 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
 
         this.canvas.style.width = img.width * scale + "px";
         this.canvas.style.height = img.height * scale + "px";
+
+        // Raw capture is now on the canvas: copy it to the clipboard and save
+        // it to history immediately. Highlighting + Copy can overwrite later.
+        this.afterCapture();
       };
       img.src = imageData;
 
@@ -495,7 +503,9 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       }
     }
 
-    async copyToClipboard() {
+    // Copy the current canvas to the clipboard. Returns true on success.
+    // When silent, suppresses the toast (used by the auto-copy on capture).
+    async copyToClipboard(silent = false) {
       try {
         const blob = await new Promise((resolve) => {
           this.canvas.toBlob(resolve, "image/png");
@@ -505,21 +515,65 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
           new ClipboardItem({ "image/png": blob }),
         ]);
 
-        // Show feedback toast
-        const toast = document.createElement("div");
-        toast.className = "chrome-snapshot-toast";
-        toast.textContent = "Copied to clipboard";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 1500);
+        // Keep the history entry in sync with what's on the clipboard, so an
+        // annotated copy replaces the raw capture rather than duplicating it.
+        if (this.currentClipId != null) {
+          const dataUrl = this.canvas.toDataURL("image/png");
+          chrome.runtime
+            .sendMessage({
+              type: "UPDATE_CLIP",
+              id: this.currentClipId,
+              dataUrl,
+            })
+            .catch(() => {});
+        }
+
+        if (!silent) this.showToast("Copied to clipboard");
+        return true;
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
+        if (!silent) this.showToast("Copy failed", true);
+        return false;
       }
+    }
+
+    // Runs once the raw capture is on the canvas: auto-copy + save to history.
+    async afterCapture() {
+      const copied = await this.copyToClipboard(true);
+
+      try {
+        const dataUrl = this.canvas.toDataURL("image/png");
+        const resp = await chrome.runtime.sendMessage({
+          type: "SAVE_CLIP",
+          dataUrl,
+          host: location.hostname,
+          w: this.canvas.width,
+          h: this.canvas.height,
+        });
+        if (resp && resp.id != null) this.currentClipId = resp.id;
+      } catch (error) {
+        console.error("Failed to save clip to history:", error);
+      }
+
+      this.showToast(
+        copied ? "Copied · saved to clips" : "Saved to clips (copy blocked)",
+      );
+    }
+
+    showToast(text, isError = false) {
+      const toast = document.createElement("div");
+      toast.className = "chrome-snapshot-toast" + (isError ? " error" : "");
+      toast.textContent = text;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 1500);
     }
 
     cleanup() {
       this.isActive = false;
       this.isSelecting = false;
       this.isHighlighting = false;
+      this.currentClipId = null;
+      this.highlights = [];
 
       if (this.overlay) {
         this.overlay.remove();

@@ -53,6 +53,27 @@
       background: #1D4ED8;
     }
 
+    .secondary-button {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      background: #FFFFFF;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .secondary-button:hover {
+      background: #F9FAFB;
+      border-color: #D1D5DB;
+    }
+
     .shortcut {
       margin-top: 10px;
       font-size: 12px;
@@ -85,6 +106,17 @@
         color: #E5E5E5;
       }
 
+      .secondary-button {
+        background: #1A1A1A;
+        color: #D1D5DB;
+        border-color: #333;
+      }
+
+      .secondary-button:hover {
+        background: #242424;
+        border-color: #444;
+      }
+
       .header h1 {
         color: #E5E5E5;
       }
@@ -112,15 +144,16 @@
   </div>
 
   <button id="takeScreenshot" class="action-button">Take Screenshot</button>
+  <button id="openHistory" class="secondary-button">Open Clip History</button>
 
   <div class="shortcut">
     <kbd id="shortcutKey">Ctrl+Shift+S</kbd>
   </div>
 
   <div class="features">
-    Area selection with guides<br>
+    Captures copy to the clipboard instantly<br>
     Highlight tool with color picker<br>
-    Save as PNG or copy to clipboard
+    Clip history gallery in the side panel
   </div>
 
   <script src="popup.js"></script>

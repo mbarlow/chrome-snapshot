@@ -511,9 +511,25 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
           this.canvas.toBlob(resolve, "image/png");
         });
 
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob }),
-        ]);
+        // navigator.clipboard only exists in secure contexts (HTTPS or
+        // localhost). Plain-HTTP LAN pages (e.g. http://seed.lan) don't expose
+        // it, so fall back to the legacy execCommand path, which has no
+        // secure-context gate.
+        let copied = false;
+        if (navigator.clipboard && navigator.clipboard.write) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob }),
+            ]);
+            copied = true;
+          } catch (err) {
+            copied = await this.copyViaExecCommand();
+          }
+        } else {
+          copied = await this.copyViaExecCommand();
+        }
+
+        if (!copied) throw new Error("clipboard write unavailable");
 
         // Keep the history entry in sync with what's on the clipboard, so an
         // annotated copy replaces the raw capture rather than duplicating it.
@@ -535,6 +551,48 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
         if (!silent) this.showToast("Copy failed", true);
         return false;
       }
+    }
+
+    // Legacy clipboard path for insecure contexts (plain-HTTP pages) where
+    // navigator.clipboard is undefined. Selects an offscreen <img> bearing the
+    // canvas data and copies it via execCommand, which has no HTTPS gate.
+    copyViaExecCommand() {
+      return new Promise((resolve) => {
+        const dataUrl = this.canvas.toDataURL("image/png");
+        const holder = document.createElement("div");
+        holder.contentEditable = "true";
+        holder.style.position = "fixed";
+        holder.style.left = "-99999px";
+        holder.style.top = "0";
+        holder.style.opacity = "0";
+
+        const img = document.createElement("img");
+        img.onload = () => {
+          try {
+            holder.appendChild(img);
+            document.body.appendChild(holder);
+
+            const range = document.createRange();
+            range.selectNode(img);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            const ok = document.execCommand("copy");
+            sel.removeAllRanges();
+            holder.remove();
+            resolve(ok);
+          } catch (err) {
+            holder.remove();
+            resolve(false);
+          }
+        };
+        img.onerror = () => {
+          holder.remove();
+          resolve(false);
+        };
+        img.src = dataUrl;
+      });
     }
 
     // Runs once the raw capture is on the canvas: auto-copy + save to history.

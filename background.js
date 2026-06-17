@@ -56,10 +56,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
       break;
 
-    case "SCREENSHOT_COMPLETE":
-      isScreenshotInProgress = false;
-      break;
-
     case "SCREENSHOT_CANCELLED":
       isScreenshotInProgress = false;
       break;
@@ -119,19 +115,14 @@ async function initiateScreenshot(tab) {
       files: ["styles/overlay.css"],
     });
 
-    // Wait a bit for injection to complete, then send message
-    setTimeout(() => {
-      chrome.tabs.sendMessage(
-        tab.id,
-        { type: "START_SELECTION" },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error("Message sending failed:", chrome.runtime.lastError);
-            isScreenshotInProgress = false;
-          }
-        },
-      );
-    }, 100);
+    // executeScript resolves only after content.js has run its top level, so
+    // the START_SELECTION listener is already registered — no delay needed.
+    chrome.tabs.sendMessage(tab.id, { type: "START_SELECTION" }, () => {
+      if (chrome.runtime.lastError) {
+        console.error("Message sending failed:", chrome.runtime.lastError);
+        isScreenshotInProgress = false;
+      }
+    });
   } catch (error) {
     console.error("Failed to initiate screenshot:", error);
     isScreenshotInProgress = false;
@@ -141,10 +132,9 @@ async function initiateScreenshot(tab) {
 // Capture full screenshot with Chrome API
 async function captureFullScreenshot(tab) {
   try {
-    // Capture the visible tab
+    // Capture the visible tab (quality is ignored for PNG)
     const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
       format: "png",
-      quality: 100,
     });
 
     return dataUrl;

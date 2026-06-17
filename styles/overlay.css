@@ -131,17 +131,22 @@
 }
 
 .chrome-snapshot-btn {
-    padding: 7px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     border: none;
     border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
     cursor: pointer;
-    transition: background 0.15s ease;
-    font-family: inherit;
+    transition: background 0.15s ease, color 0.15s ease;
     color: #ccc;
     background: rgba(255, 255, 255, 0.08);
-    white-space: nowrap;
+}
+
+.chrome-snapshot-btn svg {
+    display: block;
 }
 
 .chrome-snapshot-btn:hover {
@@ -169,9 +174,6 @@
 
 .chrome-snapshot-btn.close-btn {
     background: transparent;
-    padding: 7px 10px;
-    font-size: 18px;
-    line-height: 1;
     color: #888;
 }
 

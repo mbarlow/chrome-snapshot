@@ -40,15 +40,17 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       this.currentX = 0;
       this.currentY = 0;
 
+      // Stable bound ref so the document-level listener can be removed on
+      // cleanup — without it, each selection session leaks another listener.
+      this.onDocumentMouseMove = this.handleDocumentMouseMove.bind(this);
+
       this.init();
     }
 
     init() {
       // Listen for messages from background script
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log("Content script received message:", message);
         if (message.type === "START_SELECTION") {
-          console.log("Starting selection...");
           this.startSelection();
           sendResponse({ success: true });
         }
@@ -64,12 +66,8 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
     }
 
     startSelection() {
-      if (this.isActive) {
-        console.log("Selection already active");
-        return;
-      }
+      if (this.isActive) return;
 
-      console.log("Creating overlay...");
       this.isActive = true;
       this.createOverlay();
       this.attachEventListeners();
@@ -125,10 +123,7 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
         this.handleMouseMove.bind(this),
       );
       this.overlay.addEventListener("mouseup", this.handleMouseUp.bind(this));
-      document.addEventListener(
-        "mousemove",
-        this.handleDocumentMouseMove.bind(this),
-      );
+      document.addEventListener("mousemove", this.onDocumentMouseMove);
     }
 
     handleMouseDown(e) {
@@ -340,15 +335,28 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       this.attachCanvasListeners();
     }
 
+    // Build an icon button. `icon` is inline SVG markup; `title` doubles as the
+    // tooltip and accessible label since the buttons are icon-only.
+    makeIconButton(icon, title, onClick, extraClass = "") {
+      const btn = document.createElement("button");
+      btn.className = "chrome-snapshot-btn" + (extraClass ? " " + extraClass : "");
+      btn.title = title;
+      btn.setAttribute("aria-label", title);
+      btn.innerHTML = icon;
+      btn.onclick = onClick;
+      return btn;
+    }
+
     createToolbar() {
       const toolbar = document.createElement("div");
       toolbar.className = "chrome-snapshot-toolbar";
 
       // Highlight toggle
-      this.highlightBtn = document.createElement("button");
-      this.highlightBtn.className = "chrome-snapshot-btn";
-      this.highlightBtn.textContent = "Highlight";
-      this.highlightBtn.onclick = () => this.toggleHighlightMode();
+      this.highlightBtn = this.makeIconButton(
+        ChromeSnapshotUI.ICONS.highlight,
+        "Highlight",
+        () => this.toggleHighlightMode(),
+      );
 
       // Swatches
       this.swatchContainer = document.createElement("div");
@@ -373,22 +381,27 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       sep2.className = "chrome-snapshot-separator";
 
       // Save
-      const saveBtn = document.createElement("button");
-      saveBtn.className = "chrome-snapshot-btn primary";
-      saveBtn.textContent = "Save PNG";
-      saveBtn.onclick = () => this.saveImage();
+      const saveBtn = this.makeIconButton(
+        ChromeSnapshotUI.ICONS.save,
+        "Save PNG",
+        () => this.saveImage(),
+        "primary",
+      );
 
       // Copy
-      const copyBtn = document.createElement("button");
-      copyBtn.className = "chrome-snapshot-btn";
-      copyBtn.textContent = "Copy";
-      copyBtn.onclick = () => this.copyToClipboard();
+      const copyBtn = this.makeIconButton(
+        ChromeSnapshotUI.ICONS.copy,
+        "Copy to clipboard",
+        () => this.copyToClipboard(),
+      );
 
       // Close
-      const closeBtn = document.createElement("button");
-      closeBtn.className = "chrome-snapshot-btn close-btn";
-      closeBtn.innerHTML = "\u00d7";
-      closeBtn.onclick = () => this.cleanup();
+      const closeBtn = this.makeIconButton(
+        ChromeSnapshotUI.ICONS.close,
+        "Close",
+        () => this.cleanup(),
+        "close-btn",
+      );
 
       toolbar.appendChild(this.highlightBtn);
       toolbar.appendChild(this.swatchContainer);
@@ -633,6 +646,8 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       this.currentClipId = null;
       this.highlights = [];
 
+      document.removeEventListener("mousemove", this.onDocumentMouseMove);
+
       if (this.overlay) {
         this.overlay.remove();
         this.overlay = null;
@@ -648,14 +663,24 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
     }
   }
 
+  // Inline SVG toolbar icons (stroke-based, inherit currentColor) — matches
+  // the minimal icon set used in the side-panel gallery.
+  ChromeSnapshotUI.ICONS = {
+    highlight:
+      '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
+    save:
+      '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    copy:
+      '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+    close:
+      '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  };
+
   // Close the class definition guard
   window.ChromeSnapshotUI = ChromeSnapshotUI;
 }
 
 // Initialize the UI when content script loads
 if (typeof window.chromeSnapshotUI === "undefined") {
-  console.log("Initializing Chrome Snapshot UI...");
   window.chromeSnapshotUI = new ChromeSnapshotUI();
-} else {
-  console.log("Chrome Snapshot UI already initialized");
 }

@@ -79,6 +79,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       return true;
 
+    case "OPEN_CLIP":
+      // Side panel wants a history clip reopened in the page editor.
+      openClipInActiveTab(message)
+        .then(() => sendResponse({ success: true }))
+        .catch((error) => {
+          console.error("Failed to open clip in tab:", error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true;
+
     case "UPDATE_CLIP":
       // Annotated copy overwrote the clipboard — follow it in history.
       updateClip(message.id, message.dataUrl)
@@ -94,6 +104,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// Inject the content script + overlay CSS into a tab. executeScript resolves
+// only after content.js has run its top level, so its message listener is
+// already registered when this returns — no delay needed.
+async function injectContentScript(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    files: ["content.js"],
+  });
+
+  await chrome.scripting.insertCSS({
+    target: { tabId },
+    files: ["styles/overlay.css"],
+  });
+}
+
 // Initiate screenshot process
 async function initiateScreenshot(tab) {
   if (isScreenshotInProgress) {
@@ -104,19 +129,8 @@ async function initiateScreenshot(tab) {
   isScreenshotInProgress = true;
 
   try {
-    // Inject content script and CSS
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["content.js"],
-    });
+    await injectContentScript(tab.id);
 
-    await chrome.scripting.insertCSS({
-      target: { tabId: tab.id },
-      files: ["styles/overlay.css"],
-    });
-
-    // executeScript resolves only after content.js has run its top level, so
-    // the START_SELECTION listener is already registered — no delay needed.
     chrome.tabs.sendMessage(tab.id, { type: "START_SELECTION" }, () => {
       if (chrome.runtime.lastError) {
         console.error("Message sending failed:", chrome.runtime.lastError);
@@ -127,6 +141,21 @@ async function initiateScreenshot(tab) {
     console.error("Failed to initiate screenshot:", error);
     isScreenshotInProgress = false;
   }
+}
+
+// Reopen a history clip in the active tab's editor UI. Throws if there's no
+// injectable tab (chrome:// pages, the Web Store, etc.) so the side panel can
+// surface the failure.
+async function openClipInActiveTab({ id, dataUrl }) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab) throw new Error("No active tab");
+
+  await injectContentScript(tab.id);
+  await chrome.tabs.sendMessage(tab.id, {
+    type: "OPEN_CLIP",
+    clipId: id,
+    dataUrl,
+  });
 }
 
 // Capture full screenshot with Chrome API

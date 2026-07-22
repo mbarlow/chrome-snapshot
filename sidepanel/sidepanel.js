@@ -44,6 +44,22 @@ async function copyClip(dataUrl) {
   }
 }
 
+// Reopen a clip full-size in the active tab's editor, where highlights can
+// be added. Fails on pages the extension can't inject into (chrome:// etc.).
+async function openClip(clip) {
+  try {
+    const resp = await chrome.runtime.sendMessage({
+      type: "OPEN_CLIP",
+      id: clip.id,
+      dataUrl: clip.dataUrl,
+    });
+    if (!resp?.success) throw new Error(resp?.error || "open failed");
+  } catch (error) {
+    console.error("Open failed:", error);
+    toast("Can't open on this page");
+  }
+}
+
 const ICON_COPY =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
 const ICON_TRASH =
@@ -69,8 +85,10 @@ function makeCard(clip) {
   img.src = clip.dataUrl;
   img.alt = "clip";
   img.loading = "lazy";
-  // Single click anywhere on the image copies — the common case.
-  img.addEventListener("click", () => copyClip(clip.dataUrl));
+  // Single click anywhere on the image reopens it full-size in the page
+  // editor for highlighting. Copy lives on the toolbar button.
+  img.title = "Open in page";
+  img.addEventListener("click", () => openClip(clip));
   thumb.appendChild(img);
 
   const meta = document.createElement("div");

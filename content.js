@@ -53,6 +53,9 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
         if (message.type === "START_SELECTION") {
           this.startSelection();
           sendResponse({ success: true });
+        } else if (message.type === "OPEN_CLIP") {
+          this.openClip(message.dataUrl, message.clipId);
+          sendResponse({ success: true });
         }
         return true; // Keep message channel open
       });
@@ -71,6 +74,18 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       this.isActive = true;
       this.createOverlay();
       this.attachEventListeners();
+    }
+
+    // Reopen a history clip full-size in the editor UI (from the side panel).
+    // Skips the selection overlay and the auto-copy/auto-save that follow a
+    // fresh capture — the clip is already in history. currentClipId is set so
+    // a Copy after highlighting overwrites that same entry.
+    openClip(dataUrl, clipId) {
+      if (this.isActive) this.cleanup();
+
+      this.isActive = true;
+      this.showScreenshotUI(dataUrl, { fromHistory: true });
+      this.currentClipId = clipId ?? null;
     }
 
     createOverlay() {
@@ -275,7 +290,7 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
       });
     }
 
-    showScreenshotUI(imageData) {
+    showScreenshotUI(imageData, { fromHistory = false } = {}) {
       // Remove selection overlay
       if (this.overlay) {
         this.overlay.remove();
@@ -311,7 +326,8 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
 
         // Raw capture is now on the canvas: copy it to the clipboard and save
         // it to history immediately. Highlighting + Copy can overwrite later.
-        this.afterCapture();
+        // Clips reopened from history are already saved — skip both.
+        if (!fromHistory) this.afterCapture();
       };
       img.src = imageData;
 

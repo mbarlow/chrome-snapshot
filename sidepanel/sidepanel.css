@@ -229,12 +229,14 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Braces button reads as text, not an icon glyph. */
+/* Braces button reads as text, not an icon glyph. nowrap keeps "{ }" on
+   one line inside the 28px button. */
 .card-actions button.json {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: -1px;
+  white-space: nowrap;
 }
 
 /* Analyzed clips get an accent tint so state is visible at a glance. */

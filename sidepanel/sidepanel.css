@@ -205,6 +205,109 @@ body {
   border-color: var(--danger);
 }
 
+/* AI toggle row — the opt-in for local Gemini Nano inspection. */
+.ai-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ai-row input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.ai-status {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Braces button reads as text, not an icon glyph. */
+.card-actions button.json {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+/* Analyzed clips get an accent tint so state is visible at a glance. */
+.card-actions button.json.done {
+  color: var(--accent);
+}
+
+/* Metadata overlay — covers the whole panel, like the page image view. */
+.meta-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.meta-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.meta-title {
+  font-weight: 600;
+  font-size: 13px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta-head-actions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.meta-swatches {
+  display: flex;
+  gap: 6px;
+  padding: 10px 0 2px;
+}
+
+.meta-swatches .sw {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+}
+
+.meta-json {
+  flex: 1;
+  overflow: auto;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font: 11.5px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  white-space: pre;
+}
+
+.j-key { color: #7aa2f7; }
+.j-str { color: #9ece6a; }
+.j-num { color: #e0af68; }
+.j-bool { color: #bb9af7; }
+.j-null { color: var(--muted); }
+
 .toast {
   position: fixed;
   bottom: 16px;
@@ -217,5 +320,5 @@ body {
   font-size: 12px;
   font-weight: 500;
   border: 1px solid var(--line);
-  z-index: 3;
+  z-index: 5; /* above the metadata overlay */
 }

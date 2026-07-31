@@ -18,6 +18,12 @@
       <button id="clear" class="btn danger" type="button">Clear all</button>
     </div>
 
+    <label class="ai-row" title="Analyze each clip locally with Chrome's built-in Gemini Nano">
+      <input type="checkbox" id="aiToggle" />
+      <span>AI-inspect clips</span>
+      <span class="ai-status" id="aiStatus"></span>
+    </label>
+
     <p class="hint" id="hint">
       Captures land here automatically. Press <kbd>Ctrl/Cmd+V</kbd> to drop in
       an image from another app.
@@ -26,6 +32,20 @@
     <div class="empty" id="empty" hidden>No clips yet.</div>
 
     <div class="grid" id="grid"></div>
+
+    <!-- Metadata overlay: covers the panel like the image view covers the
+         page. Pretty-printed, colorized clip JSON with a copy button. -->
+    <div class="meta-overlay" id="metaOverlay" hidden>
+      <div class="meta-head">
+        <span class="meta-title" id="metaTitle"></span>
+        <div class="meta-head-actions">
+          <button id="metaCopy" class="btn" type="button">Copy JSON</button>
+          <button id="metaClose" class="btn" type="button" title="Close (Esc)">&#10005;</button>
+        </div>
+      </div>
+      <div class="meta-swatches" id="metaSwatches"></div>
+      <pre class="meta-json" id="metaJson"></pre>
+    </div>
 
     <span class="toast" id="toast" hidden></span>
 

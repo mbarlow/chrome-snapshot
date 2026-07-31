@@ -1,6 +1,7 @@
 // Background service worker for Chrome Snapshot extension
 
-import { addClip, updateClip } from "./db.js";
+import { addClip, updateClip, getClip, setClipMeta } from "./db.js";
+import { buildBaseMetadata } from "./metadata/build.js";
 
 let isScreenshotInProgress = false;
 
@@ -62,13 +63,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case "SAVE_CLIP":
       // Content script captured a region — persist it to the shared store.
-      addClip({
-        dataUrl: message.dataUrl,
-        source: "capture",
-        host: message.host || "",
-        w: message.w,
-        h: message.h,
-      })
+      // Deterministic metadata is built here so it exists even if the side
+      // panel never opens; a build failure must not lose the clip.
+      saveClipWithMeta(message)
         .then((id) => {
           sendResponse({ id });
           broadcastClipsUpdated();
@@ -90,9 +87,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
 
     case "UPDATE_CLIP":
-      // Annotated copy overwrote the clipboard — follow it in history.
+      // Annotated copy overwrote the clipboard — follow it in history, then
+      // refresh the deterministic metadata (the pixels changed; the AI
+      // analysis of the underlying capture is kept as-is).
       updateClip(message.id, message.dataUrl)
-        .then((ok) => {
+        .then(async (ok) => {
+          if (ok) await refreshClipMeta(message.id, message.dataUrl);
           sendResponse({ ok });
           broadcastClipsUpdated();
         })
@@ -103,6 +103,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
   }
 });
+
+// Persist a captured region with its deterministic metadata. The metadata
+// builder is best-effort: if it throws (odd data URL, canvas limits), the
+// clip still saves with meta null and the side panel backfills later.
+async function saveClipWithMeta(message) {
+  const clip = {
+    dataUrl: message.dataUrl,
+    source: "capture",
+    host: message.host || "",
+    w: message.w,
+    h: message.h,
+  };
+  let meta = null;
+  try {
+    meta = await buildBaseMetadata(clip);
+    meta.ai = { status: "pending" };
+  } catch (error) {
+    console.error("Metadata build failed:", error);
+  }
+  return addClip({ ...clip, meta });
+}
+
+// Rebuild deterministic metadata after the clip's image changed, preserving
+// any existing AI analysis.
+async function refreshClipMeta(id, dataUrl) {
+  try {
+    const rec = await getClip(id);
+    if (!rec) return;
+    const meta = await buildBaseMetadata({
+      dataUrl,
+      source: rec.source,
+      host: rec.host,
+      createdAt: rec.createdAt,
+    });
+    meta.ai = rec.meta?.ai || { status: "pending" };
+    await setClipMeta(id, meta);
+  } catch (error) {
+    console.error("Metadata refresh failed:", error);
+  }
+}
 
 // Inject the content script + overlay CSS into a tab. executeScript resolves
 // only after content.js has run its top level, so its message listener is

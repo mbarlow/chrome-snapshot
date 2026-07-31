@@ -141,12 +141,51 @@ function makeCard(clip) {
   return card;
 }
 
+// Everything searchable about a clip, flattened to one lowercase string.
+// Deterministic fields always contribute; AI fields once analysis lands.
+function haystack(clip) {
+  const ai = clip.meta?.ai || {};
+  return [
+    clip.host,
+    clip.url,
+    clip.source,
+    clip.meta?.origin?.url,
+    ai.description,
+    ...(ai.contents || []),
+    ...(ai.tags || []),
+    ai.text,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+// Space-separated terms AND together against the haystack.
+function matches(clip, terms) {
+  if (!terms.length) return true;
+  const hay = haystack(clip);
+  return terms.every((t) => hay.includes(t));
+}
+
 async function render() {
   const clips = await getAllClips();
+  const terms = $("search")
+    .value.trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  const shown = clips.filter((c) => matches(c, terms));
+
   grid.innerHTML = "";
-  $("count").textContent = clips.length ? `${clips.length} clip${clips.length === 1 ? "" : "s"}` : "";
-  $("empty").hidden = clips.length > 0;
-  for (const clip of clips) grid.appendChild(makeCard(clip));
+  $("count").textContent = terms.length
+    ? `${shown.length}/${clips.length} clip${clips.length === 1 ? "" : "s"}`
+    : clips.length
+      ? `${clips.length} clip${clips.length === 1 ? "" : "s"}`
+      : "";
+  const emptyEl = $("empty");
+  emptyEl.hidden = shown.length > 0;
+  emptyEl.textContent = clips.length ? "No clips match." : "No clips yet.";
+  for (const clip of shown) grid.appendChild(makeCard(clip));
 }
 
 // ---------------------------------------------------------------------------
@@ -375,6 +414,8 @@ $("capture").addEventListener("click", () => {
 });
 
 $("paste").addEventListener("click", pasteFromClipboard);
+
+$("search").addEventListener("input", () => render());
 
 $("clear").addEventListener("click", async () => {
   const clips = await getAllClips();

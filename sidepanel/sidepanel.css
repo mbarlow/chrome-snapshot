@@ -205,6 +205,29 @@ body {
   border-color: var(--danger);
 }
 
+/* Search — filters the grid against clip metadata as you type. */
+.search {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.search:focus {
+  border-color: var(--accent);
+}
+
+.search::placeholder {
+  color: var(--muted);
+}
+
 /* AI toggle row — the opt-in for local Gemini Nano inspection. */
 .ai-row {
   display: flex;

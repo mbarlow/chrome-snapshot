@@ -11,6 +11,7 @@ A Chrome extension for taking screenshots of selected screen areas with highligh
 - Captures copy straight to the clipboard the moment you select
 - Add colored highlights — pressing Copy overwrites the clipboard with the annotated version
 - Clip history in a side-panel gallery: copy or delete any past clip
+- Search clips by metadata: tags, contents, legible text, origin
 - Paste images from other apps (`Ctrl/Cmd+V`) into the gallery
 - Save as PNG or copy to clipboard
 - Right-click context menu integration
@@ -48,6 +49,10 @@ still works and clips stay marked `pending`.
 
 The schema is defined in one place: `metadata/schema.js`. It documents the
 stored shape and doubles as the `responseConstraint` handed to the model.
+
+Metadata makes the gallery searchable. The search box filters as you type —
+space-separated terms AND together — against origin host and URL, source,
+and once a clip is analyzed, its AI description, contents, text, and tags.
 
 ## Install
 

@@ -634,6 +634,7 @@ if (typeof window.ChromeSnapshotUI === "undefined") {
           type: "SAVE_CLIP",
           dataUrl,
           host: location.hostname,
+          url: location.href,
           w: this.canvas.width,
           h: this.canvas.height,
         });

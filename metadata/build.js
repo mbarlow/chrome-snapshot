@@ -9,6 +9,7 @@ export async function buildBaseMetadata({
   dataUrl,
   source = "capture",
   host = "",
+  url = "",
   createdAt = Date.now(),
 }) {
   const blob = await (await fetch(dataUrl)).blob();
@@ -18,7 +19,7 @@ export async function buildBaseMetadata({
       schemaVersion: SCHEMA_VERSION,
       capturedAt: new Date(createdAt).toISOString(),
       source,
-      origin: { host },
+      origin: { host, url },
       image: {
         width: bitmap.width,
         height: bitmap.height,

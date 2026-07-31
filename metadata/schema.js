@@ -6,7 +6,7 @@
 //   schemaVersion: 1,
 //   capturedAt:  ISO 8601 string
 //   source:      "capture" | "paste"
-//   origin:      { host }            — capturing page's hostname, "" for pastes
+//   origin:      { host, url }       — capturing page's hostname + full URL, "" for pastes
 //   image:       { width, height, format, bytes }
 //   palette:     [{ hex, share }]    — dominant colors, share is 0..1 of sampled pixels
 //   ai: {

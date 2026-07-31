@@ -112,6 +112,7 @@ async function saveClipWithMeta(message) {
     dataUrl: message.dataUrl,
     source: "capture",
     host: message.host || "",
+    url: message.url || "",
     w: message.w,
     h: message.h,
   };
@@ -135,6 +136,7 @@ async function refreshClipMeta(id, dataUrl) {
       dataUrl,
       source: rec.source,
       host: rec.host,
+      url: rec.url,
       createdAt: rec.createdAt,
     });
     meta.ai = rec.meta?.ai || { status: "pending" };

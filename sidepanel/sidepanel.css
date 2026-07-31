@@ -242,7 +242,9 @@ body {
   color: var(--accent);
 }
 
-/* Metadata overlay — covers the whole panel, like the page image view. */
+/* Metadata overlay — covers the whole panel, like the page image view.
+   display:flex would override the hidden attribute's UA display:none, so
+   re-assert it explicitly. */
 .meta-overlay {
   position: fixed;
   inset: 0;
@@ -251,6 +253,10 @@ body {
   display: flex;
   flex-direction: column;
   padding: 12px;
+}
+
+.meta-overlay[hidden] {
+  display: none;
 }
 
 .meta-head {

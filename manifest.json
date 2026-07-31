@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Chrome Snapshot",
-  "version": "0.0.5",
-  "description": "Snapshot screen areas straight to the clipboard, annotate, and keep a clip history in a side-panel gallery",
+  "version": "0.0.6",
+  "description": "Snapshot screen areas straight to the clipboard, annotate, keep a clip history in a side-panel gallery, and optionally AI-inspect clips on-device",
   "minimum_chrome_version": "114",
   "permissions": [
     "activeTab",

@@ -15,6 +15,7 @@ A Chrome extension for taking screenshots of selected screen areas with highligh
 - Save as PNG or copy to clipboard
 - Right-click context menu integration
 - Visual guides and coordinates during selection
+- Per-clip JSON metadata: resolution, origin, palette swatch — plus optional on-device AI description via Gemini Nano
 
 ## Clip History
 
@@ -23,6 +24,30 @@ in IndexedDB (extension-private — never leaves the browser). Open it from the
 extension popup's **Open Clip History** button; it slides out as a native Chrome
 side panel. From there you can copy any clip back to the clipboard, delete
 clips, clear the lot, or paste in images from other tools.
+
+## Clip Metadata
+
+Every clip carries a JSON metadata record. Open it with the `{ }` button on
+any clip card — pretty-printed, syntax-colorized, one-click copy.
+
+Two layers, strictly separated:
+
+**Deterministic — always on.** Resolution, format, byte size, capture time,
+origin host, source, and a dominant-color palette swatch. Pure canvas math.
+No model, no network.
+
+**AI — opt-in.** Flip "AI-inspect clips" in the side panel and each clip is
+analyzed on-device by Chrome's built-in Gemini Nano: a factual description,
+visible contents, legible text, search tags. Output is schema-constrained
+JSON, not parsed prose. The model reports what is visible. It never guesses.
+
+Requirements for the AI layer: desktop Chrome 138+ with image input support
+in the built-in model (`chrome://on-device-internals` shows model state). No
+API keys. Nothing leaves the browser. Without it, the deterministic layer
+still works and clips stay marked `pending`.
+
+The schema is defined in one place: `metadata/schema.js`. It documents the
+stored shape and doubles as the `responseConstraint` handed to the model.
 
 ## Install
 
